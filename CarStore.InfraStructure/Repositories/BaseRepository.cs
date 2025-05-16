@@ -38,6 +38,8 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class
         return await query.AsNoTracking().SingleOrDefaultAsync(criteria);
     }
 
+    public async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria) => await _context.Set<T>().Where(criteria).ToListAsync();
+
     public async Task AddAsync(T entity)
     {
         await _context.Set<T>().AddAsync(entity);
@@ -53,14 +55,19 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Guid id)
-    {
-        var entity = await GetByIdAsync(id);
+    public async Task DeleteAsync(T entity)
+    { 
         await Task.Run(() =>
         {
             _context.Set<T>().Remove(entity!);
         });
             await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteWhereAsync(Expression<Func<T, bool>> criteria)
+    {
+        await _context.Set<T>().Where(criteria).ExecuteDeleteAsync();
+        //await _context.SaveChangesAsync();
     }
 
     public async Task<List<TResult>> CustomFindAsync<TEntity, TResult>(Expression<Func<TEntity, TResult>> selector, Expression<Func<TEntity, bool>>? predicate = null, Func<IQueryable<TEntity>, IQueryable<TEntity>> includes = null,

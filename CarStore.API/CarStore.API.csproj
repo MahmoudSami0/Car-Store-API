@@ -23,4 +23,8 @@
     <ProjectReference Include="..\CarStore.InfraStructure\CarStore.InfraStructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\uploads\carmodels\" />
+  </ItemGroup>
+
 </Project>

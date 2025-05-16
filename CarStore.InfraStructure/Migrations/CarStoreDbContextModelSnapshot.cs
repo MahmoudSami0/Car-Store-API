@@ -40,6 +40,225 @@ namespace CarStore.InfraStructure.Migrations
                     b.ToTable("BlacklistedToken", (string)null);
                 });
 
+            modelBuilder.Entity("CarStore.Domain.Entities.CarBrand", b =>
+                {
+                    b.Property<Guid>("BrandId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BrandName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Logo")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("BrandId");
+
+                    b.HasIndex("BrandName")
+                        .IsUnique();
+
+                    b.ToTable("CarBrands", (string)null);
+                });
+
+            modelBuilder.Entity("CarStore.Domain.Entities.CarFeatures", b =>
+                {
+                    b.Property<Guid>("CarModelId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("FeatureId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("CarModelId", "FeatureId");
+
+                    b.HasIndex("FeatureId");
+
+                    b.ToTable("CarFeatures", (string)null);
+                });
+
+            modelBuilder.Entity("CarStore.Domain.Entities.CarModel", b =>
+                {
+                    b.Property<Guid>("CarId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CarBrandId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsFeatured")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRecommended")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModelName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("YearOfProduction")
+                        .HasColumnType("int");
+
+                    b.HasKey("CarId");
+
+                    b.HasIndex("CarBrandId");
+
+                    b.HasIndex("ModelName")
+                        .IsUnique();
+
+                    b.ToTable("CarModels", (string)null);
+                });
+
+            modelBuilder.Entity("CarStore.Domain.Entities.Favorite", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CarId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AddedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("UserId", "CarId");
+
+                    b.HasIndex("CarId");
+
+                    b.ToTable("Favorites", (string)null);
+                });
+
+            modelBuilder.Entity("CarStore.Domain.Entities.Feature", b =>
+                {
+                    b.Property<Guid>("FeatureId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FeatureName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("FeatureId");
+
+                    b.HasIndex("FeatureName")
+                        .IsUnique();
+
+                    b.ToTable("Features", (string)null);
+                });
+
+            modelBuilder.Entity("CarStore.Domain.Entities.ModelGallery", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CarModelId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CarModelId");
+
+                    b.ToTable("ModelGalleries", (string)null);
+                });
+
+            modelBuilder.Entity("CarStore.Domain.Entities.PenddingUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("EmailVerificationToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EmailVerificationTokenExpires")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HashPassword")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Phone")
+                        .IsUnique()
+                        .HasFilter("[Phone] IS NOT NULL");
+
+                    b.ToTable("PenddingUsers", (string)null);
+                });
+
+            modelBuilder.Entity("CarStore.Domain.Entities.Rate", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CarModelId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<float>("RateValue")
+                        .HasColumnType("real");
+
+                    b.HasKey("UserId", "CarModelId");
+
+                    b.HasIndex("CarModelId");
+
+                    b.ToTable("Rates", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Rate_Value", "[RateValue] >= 0 AND [RateValue] <= 5");
+                        });
+                });
+
             modelBuilder.Entity("CarStore.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -94,21 +313,19 @@ namespace CarStore.InfraStructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AuthProvider")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<string>("EmailVerificationToken")
+                    b.Property<string>("GoogleId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("EmailVerificationTokenExpires")
-                        .HasColumnType("datetime2");
-
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsVerified")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
@@ -116,8 +333,7 @@ namespace CarStore.InfraStructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<string>("Password")
-                        .IsRequired()
+                    b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
@@ -162,6 +378,85 @@ namespace CarStore.InfraStructure.Migrations
                     b.ToTable("UserRoles", (string)null);
                 });
 
+            modelBuilder.Entity("CarStore.Domain.Entities.CarFeatures", b =>
+                {
+                    b.HasOne("CarStore.Domain.Entities.CarModel", "CarModel")
+                        .WithMany("CarFeatures")
+                        .HasForeignKey("CarModelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CarStore.Domain.Entities.Feature", "Feature")
+                        .WithMany("CarFeatures")
+                        .HasForeignKey("FeatureId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CarModel");
+
+                    b.Navigation("Feature");
+                });
+
+            modelBuilder.Entity("CarStore.Domain.Entities.CarModel", b =>
+                {
+                    b.HasOne("CarStore.Domain.Entities.CarBrand", "CarBrand")
+                        .WithMany("CarModels")
+                        .HasForeignKey("CarBrandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CarBrand");
+                });
+
+            modelBuilder.Entity("CarStore.Domain.Entities.Favorite", b =>
+                {
+                    b.HasOne("CarStore.Domain.Entities.CarModel", "CarModel")
+                        .WithMany("Favorites")
+                        .HasForeignKey("CarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CarStore.Domain.Entities.User", "User")
+                        .WithMany("Favorites")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CarModel");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CarStore.Domain.Entities.ModelGallery", b =>
+                {
+                    b.HasOne("CarStore.Domain.Entities.CarModel", "CarModel")
+                        .WithMany("ModelGalleries")
+                        .HasForeignKey("CarModelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CarModel");
+                });
+
+            modelBuilder.Entity("CarStore.Domain.Entities.Rate", b =>
+                {
+                    b.HasOne("CarStore.Domain.Entities.CarModel", "CarModel")
+                        .WithMany("Rates")
+                        .HasForeignKey("CarModelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CarStore.Domain.Entities.User", "User")
+                        .WithMany("Rates")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CarModel");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CarStore.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("CarStore.Domain.Entities.User", "User")
@@ -192,6 +487,27 @@ namespace CarStore.InfraStructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CarStore.Domain.Entities.CarBrand", b =>
+                {
+                    b.Navigation("CarModels");
+                });
+
+            modelBuilder.Entity("CarStore.Domain.Entities.CarModel", b =>
+                {
+                    b.Navigation("CarFeatures");
+
+                    b.Navigation("Favorites");
+
+                    b.Navigation("ModelGalleries");
+
+                    b.Navigation("Rates");
+                });
+
+            modelBuilder.Entity("CarStore.Domain.Entities.Feature", b =>
+                {
+                    b.Navigation("CarFeatures");
+                });
+
             modelBuilder.Entity("CarStore.Domain.Entities.Role", b =>
                 {
                     b.Navigation("UserRoles");
@@ -199,6 +515,10 @@ namespace CarStore.InfraStructure.Migrations
 
             modelBuilder.Entity("CarStore.Domain.Entities.User", b =>
                 {
+                    b.Navigation("Favorites");
+
+                    b.Navigation("Rates");
+
                     b.Navigation("RefreshTokens");
 
                     b.Navigation("UserRoles");

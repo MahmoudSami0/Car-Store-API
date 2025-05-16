@@ -7,9 +7,11 @@ public interface IBaseRepository<T> where T : class
     Task<IEnumerable<T>> GetAllAsync();
     Task<T?> GetByIdAsync(Guid id);
     Task<T?> FindAsync(Expression<Func<T,bool>> criteria, string[]? includes = null);
+    Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria);
     Task AddAsync(T entity);
     Task UpdateAsync(T entity);
-    Task DeleteAsync(Guid id);
+    Task DeleteAsync(T entity);
+    Task DeleteWhereAsync(Expression<Func<T, bool>> criteria);
     Task<List<TResult>> CustomFindAsync<TEntity, TResult>(
         Expression<Func<TEntity, TResult>> selector,
         Expression<Func<TEntity, bool>>? predicate = null,

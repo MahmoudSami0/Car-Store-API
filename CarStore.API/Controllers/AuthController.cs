@@ -1,3 +1,4 @@
+using CarStore.Applcation.DTOs.Authentication;
 using CarStore.Applcation.Services;
 using CarStore.Application.DTOs;
 using CarStore.Application.Services;
@@ -23,18 +24,24 @@ namespace CarStore.API.Controllers
 
         [HttpPost("SignUp")]
         [AllowAnonymous]
-        public async Task<ActionResult<AuthResult>> SignUpAsync(RegisterRequest request)
+        public async Task<ActionResult<AuthResult>> SignUpAsync([FromBody] RegisterRequest request)
         {
             try
             {
+                if (request is null)
+                    return BadRequest(new { Message = "Invalid register request" });
+
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
-                
+
                 var user = await _authService.Register(request);
 
+                if (!string.IsNullOrEmpty(user.Message))
+                    return BadRequest(new { Message = user.Message });
+
                 var token = user.EmailVerificationToken;
-                var confirmationLink = Url.Action("ConfirmEmail", "Auth", 
-                    new { email = user.Email, token = token}, Request.Scheme);
+                var confirmationLink = Url.Action("ConfirmEmail", "Auth",
+                    new { email = user.Email, token = token }, Request.Scheme);
 
                 await _mailService.SendEmailConfirmationAsync(user.Email, confirmationLink);
 
@@ -42,26 +49,43 @@ namespace CarStore.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new {Message = e.Message});
+                return BadRequest(new { Message = e.Message });
             }
         }
-        
+
         [HttpPost("SignIn")]
         [AllowAnonymous]
-        public async Task<ActionResult<AuthResult>> SignInAsync(LoginRequest request)
+        public async Task<ActionResult<AuthResult>> SignInAsync([FromBody] LoginRequest request)
         {
             try
             {
+                if (request is null)
+                    return BadRequest(new { Message = "Invalid login request" });
+
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
-                
-                var  result = await _authService.Login(request);
-                return !string.IsNullOrEmpty(result.Message) ? BadRequest(result.Message) : Ok(result);
+
+                var result = await _authService.Login(request);
+                return !string.IsNullOrEmpty(result.Message) ? BadRequest(new { Message = result.Message }) : Ok(result);
             }
             catch (Exception e)
             {
-                return BadRequest(e.Message);
+                return BadRequest(new { Message = e.Message });
             }
+        }
+
+        [HttpPost("SignInWithGoogle")]
+        [AllowAnonymous]
+        public async Task<ActionResult<AuthResult>> SignInWithGoogleAsync([FromBody] GoogleLoginRequest request)
+        {
+            if (request is null)
+                return BadRequest(new { Message = "Invalid login request" });
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _authService.GoogleLogin(request);
+            return !string.IsNullOrEmpty(result.Message) ? BadRequest(new { Message = result.Message }) : Ok(result);
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
@@ -71,7 +95,7 @@ namespace CarStore.API.Controllers
         {
             try
             {
-                var  result = await _authService.ConfirmEmail(new ConfirmRequest {Email = email, Token = token});
+                var result = await _authService.ConfirmEmail(new ConfirmRequest { Email = email, Token = token });
                 if (result)
                 {
                     // Return HTML confirmation page
@@ -91,11 +115,11 @@ namespace CarStore.API.Controllers
                     </html>", "text/html");
                 }
 
-                return BadRequest(new {Message = "Email confirmation failed" });
+                return BadRequest(new { Message = "Email confirmation failed" });
             }
             catch (Exception e)
             {
-                return BadRequest(new {Message = e.Message});
+                return BadRequest(new { Message = e.Message });
             }
         }
 
@@ -103,22 +127,40 @@ namespace CarStore.API.Controllers
         [Authorize]
         public async Task<ActionResult<string>> SignOutAsync()
         {
-           try
-           {
+            try
+            {
                 var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
-                if(token is null)
-                    return BadRequest("Token is missing");
-                
+                if (token is null)
+                    return BadRequest(new { Message = "Token not found" });
+
                 var result = await _authService.SignOut(token);
 
-                return result.Contains("successfully") ? Ok(result) : BadRequest(result);
-           }
-           catch (Exception e)
-           {
-               return BadRequest(e.Message);
-           }
+                return result.Contains("successfully") ? Ok(new { Message = result }) : BadRequest(new { Message = result });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { Message = e.Message });
+            }
         }
 
+        [HttpPost("RefreshToken")]
+        [Authorize]
+        public async Task<ActionResult<AuthResult>> RefreshTokenAsync([FromBody] string request)
+        {
+            var result = await _authService.RefreshToken(request);
+
+            return !result.IsAuthenticated ? BadRequest(new { Message = result.Message }) : Ok(result);
+        }
+
+        [HttpPost("RevokeToken")]
+        [Authorize]
+        public async Task<ActionResult<string>> RevokeTokenAsync([FromBody] string request)
+        {
+            var result = await _authService.RevokeToken(request);
+
+            return !result ? BadRequest(new { Message = "InValid Token!" }) : Ok(new { Message = "Token Revoked Successfully!" });
+
+        }
     }
 }
