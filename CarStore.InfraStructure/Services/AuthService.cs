@@ -107,7 +107,7 @@ public class AuthService : IAuthService
 
         await _unitOfWork.PenddingUsers.AddAsync(newUser);
 
-        await _mailService.SendEmailConfirmationAsync(newUser.Email, newUser.EmailVerificationToken);
+        //await _mailService.SendEmailConfirmationAsync(newUser.Email, newUser.EmailVerificationToken);
 
         authResult.AuthProvider = "Email";
         authResult.Email = newUser.Email;
