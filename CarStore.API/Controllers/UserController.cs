@@ -134,30 +134,43 @@ namespace CarStore.API.Controllers
 
         }
 
-        [HttpDelete("Delete/{id}")]
-        [Authorize(Roles = "Administrator")]
-        public async Task<ActionResult<string>> DeleteUserAsync(Guid id)
+        [HttpDelete("Delete/me")]
+        public async Task<ActionResult<string>> DeleteUserAsync()
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(id);
-            if (user == null)
-                return NotFound(new { Message = "User not found" });
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var roles = User.Claims
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { Message = "Unauthorized" });
+
+                var user = await _unitOfWork.Users.GetByIdAsync(Guid.Parse(userId));
+
+                if (user == null)
+                    return NotFound(new { Message = "User not found" });
+
+                var roles = User.Claims
                 .Where(c => c.Type == ClaimTypes.Role)
                 .Select(c => c.Value)
                 .ToList();
 
-            if (roles.Contains("Administrator"))
-                return StatusCode(403, (new { Message = "Unauthorized, cannot delete admin" }));
+                if (roles.Contains("Administrator"))
+                    return StatusCode(403, (new { Message = "Unauthorized, cannot delete admin" }));
 
-            user.IsDeleted = true;
-            await _unitOfWork.UserRoles.DeleteWhereAsync(ur => ur.UserId == id);
-            await _unitOfWork.Favorites.DeleteWhereAsync(f => f.UserId == id);
-            await _unitOfWork.RefreshTokens.DeleteWhereAsync(rt => rt.UserId == id);
-            await _unitOfWork.Rates.DeleteWhereAsync(r => r.UserId == id);
+                user.IsDeleted = true;
+                await _unitOfWork.UserRoles.DeleteWhereAsync(ur => ur.UserId == Guid.Parse(userId));
+                await _unitOfWork.Favorites.DeleteWhereAsync(f => f.UserId == Guid.Parse(userId));
+                await _unitOfWork.RefreshTokens.DeleteWhereAsync(rt => rt.UserId == Guid.Parse(userId));
+                await _unitOfWork.Rates.DeleteWhereAsync(r => r.UserId == Guid.Parse(userId));
 
-            await _unitOfWork.Users.DeleteAsync(user);
-            return Ok(new { Message = "User deleted successfully" });
+                await _unitOfWork.Users.DeleteAsync(user);
+                return Ok(new { Message = "User deleted successfully" });
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = "Unauthorized" });
+            }
         }
 
         [HttpPost("AI-Caht")]

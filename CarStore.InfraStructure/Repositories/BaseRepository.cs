@@ -1,8 +1,6 @@
 using System.Linq.Expressions;
-using CarStore.Applcation.DTOs.Pagination;
 using CarStore.Application.Interfaces;
 using CarStore.InfraStructure.Data;
-using CarStore.InfraStructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarStore.InfraStructure.Repositorries;
