@@ -11,7 +11,7 @@ public interface IAuthService
     Task<AuthResult> GoogleLogin(GoogleLoginRequest request);
     Task<bool> ConfirmEmail(ConfirmRequest request);
     string GenerateEmailConfirmationToken(string email);
-    Task<string> SignOut(string token);
+    Task<string> SignOut(string token, string refreshToken);
     Task<AuthResult> RefreshToken(string refreshToken);
     Task<bool> RevokeToken(string token);
 }

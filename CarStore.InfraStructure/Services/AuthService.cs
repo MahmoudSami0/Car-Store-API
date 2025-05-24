@@ -284,10 +284,14 @@ public class AuthService : IAuthService
         return token;
     }
 
-    public async Task<string> SignOut(string token)
+    public async Task<string> SignOut(string token, string refreshToken)
     {
         try
         {
+            if(token is null 
+                || refreshToken is null
+                ) return "Invalid request";
+
             if (!string.IsNullOrEmpty(token))
             {
                 var jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
@@ -299,7 +303,18 @@ public class AuthService : IAuthService
                     Expiration = expiration
                 };
 
+                var refresh = await _unitOfWork.RefreshTokens.FindAsync(rt => rt.Token == refreshToken);
+
+                if (refresh is null)
+                    return "Invalid refresh token";
+
+                if (!refresh.IsActive)
+                {
+                    await _unitOfWork.blacklistedTokens.AddAsync(blackListToken);
+                    return "Signed out successfully";
+                }
                 await _unitOfWork.blacklistedTokens.AddAsync(blackListToken);
+                await RevokeToken(refreshToken);
             }
             return "Signed out successfully";
         }
@@ -338,11 +353,11 @@ public class AuthService : IAuthService
             return authResult;
         }
 
-        refreshToken.RevokedOn = DateTime.UtcNow;
+        //refreshToken.RevokedOn = DateTime.UtcNow;
 
-        var newRefreshToken = _tokenGenerator.GenerateRefreshToken();
-        user.RefreshTokens.Add(newRefreshToken);
-        await _unitOfWork.Users.UpdateAsync(user);
+        //var newRefreshToken = _tokenGenerator.GenerateRefreshToken();
+        //user.RefreshTokens.Add(newRefreshToken);
+        //await _unitOfWork.Users.UpdateAsync(user);
 
         var jwtToken = await _tokenGenerator.GenerateJwtToken(user);
         var roles = await _unitOfWork.Roles.GetRolesAsync(user);
@@ -351,8 +366,8 @@ public class AuthService : IAuthService
         authResult.IsAuthenticated = true;
         authResult.Roles = roles;
         authResult.Token = jwtToken;
-        authResult.RefreshToken = newRefreshToken.Token;
-        authResult.RefreshTokenExpiration = newRefreshToken.ExpiresOn;
+        //authResult.RefreshToken = newRefreshToken.Token;
+        //authResult.RefreshTokenExpiration = newRefreshToken.ExpiresOn;
 
         return authResult;
     }

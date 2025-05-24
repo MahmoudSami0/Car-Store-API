@@ -1,6 +1,8 @@
 using System.Linq.Expressions;
+using CarStore.Applcation.DTOs.Pagination;
 using CarStore.Application.Interfaces;
 using CarStore.InfraStructure.Data;
+using CarStore.InfraStructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarStore.InfraStructure.Repositorries;
@@ -14,9 +16,9 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class
         _context = context;
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync()
+    public async Task<IQueryable<T?>> GetAllAsync()
     {
-            return await _context.Set<T>().AsNoTracking().ToListAsync();
+        return await Task.Run(() => _context.Set<T>().AsNoTracking().AsQueryable());
     }
 
     public async Task<T?> GetByIdAsync(Guid id)
@@ -38,7 +40,7 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class
         return await query.AsNoTracking().SingleOrDefaultAsync(criteria);
     }
 
-    public async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria) => await _context.Set<T>().Where(criteria).ToListAsync();
+    public async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria) => await Task.Run(() => _context.Set<T>().Where(criteria).AsQueryable());
 
     public async Task AddAsync(T entity)
     {
@@ -62,6 +64,15 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class
             _context.Set<T>().Remove(entity!);
         });
             await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteRangeAsync(ICollection<T> entities)
+    {
+        await Task.Run(() =>
+        {
+            _context.Set<T>().RemoveRange(entities);
+        });
+        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteWhereAsync(Expression<Func<T, bool>> criteria)

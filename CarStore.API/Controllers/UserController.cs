@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using CarStore.Applcation.DTOs.Pagination;
 using CarStore.Applcation.DTOs.User;
+using CarStore.Applcation.Services;
 using CarStore.Application.DTOs.User;
 using CarStore.Application.Interfaces;
 using CarStore.Domain.Entities;
@@ -17,28 +19,31 @@ namespace CarStore.API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IAIService _aiService;
 
-        public UserController(IUnitOfWork unitOfWork, IMapper mapper)
+        public UserController(IUnitOfWork unitOfWork, IMapper mapper, IAIService aiService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _aiService = aiService;
         }
 
-        [HttpGet("Users")]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersAsync()
         {
             var users = await _unitOfWork.Users.GetAllAsync();
             return users is null || users.Count() < 1 ? NotFound(new { Message = "No users found" }) : Ok(_mapper.Map<IEnumerable<UserDto>>(users));
         }
 
-        [HttpGet("User/{id}")]
+        [HttpGet("{id}")]
+        [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<UserDto>> GetUserByIdAsync(Guid id)
         {
             var user = await _unitOfWork.Users.GetByIdAsync(id);
             return user is null ? NotFound(new { Message = "User not found" }) : Ok(_mapper.Map<UserDto>(user));
         }
 
-        [HttpGet("User/me")]
+        [HttpGet("me")]
         public async Task<ActionResult<UserDto>> GetUserByTokenAsync()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -54,7 +59,8 @@ namespace CarStore.API.Controllers
             return Ok(_mapper.Map<UserDto>(user));
         }
 
-        [HttpPut("User/Update/{id}")]
+        [HttpPut("Update/{id}")]
+        [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<string>> UpdateUserAsync(Guid id, [FromBody] BasicUserDto model)
         {
             if (model is null)
@@ -90,7 +96,7 @@ namespace CarStore.API.Controllers
 
         }
 
-        [HttpPut("User/Update")]
+        [HttpPut("Update")]
         public async Task<ActionResult<string>> UpdateUserAsync([FromBody] BasicUserDto model)
         {
             if(model is null)
@@ -128,14 +134,21 @@ namespace CarStore.API.Controllers
 
         }
 
-        //TODO: Deactivate/Activate user Endpoint
-
-        [HttpDelete("User/Delete/{id}")] 
+        [HttpDelete("Delete/{id}")]
+        [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<string>> DeleteUserAsync(Guid id)
         {
             var user = await _unitOfWork.Users.GetByIdAsync(id);
             if (user == null)
                 return NotFound(new { Message = "User not found" });
+
+            var roles = User.Claims
+                .Where(c => c.Type == ClaimTypes.Role)
+                .Select(c => c.Value)
+                .ToList();
+
+            if (roles.Contains("Administrator"))
+                return StatusCode(403, (new { Message = "Unauthorized, cannot delete admin" }));
 
             user.IsDeleted = true;
             await _unitOfWork.UserRoles.DeleteWhereAsync(ur => ur.UserId == id);
@@ -145,6 +158,19 @@ namespace CarStore.API.Controllers
 
             await _unitOfWork.Users.DeleteAsync(user);
             return Ok(new { Message = "User deleted successfully" });
+        }
+
+        [HttpPost("AI-Caht")]
+        public async Task<ActionResult<string>> ChatWithAI([FromBody] AIChatRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Message))
+            {
+                return BadRequest("Message is required.");
+            }
+
+            var response = await _aiService.GetAIResponse(request.Message);
+
+            return Ok(new { reply = response });
         }
     }
 }

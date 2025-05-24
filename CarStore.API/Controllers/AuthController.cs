@@ -3,6 +3,7 @@ using CarStore.Applcation.Services;
 using CarStore.Application.DTOs;
 using CarStore.Application.Services;
 using CarStore.Domain.Entities;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
@@ -125,7 +126,7 @@ namespace CarStore.API.Controllers
 
         [HttpPost("SignOut")]
         [Authorize]
-        public async Task<ActionResult<string>> SignOutAsync()
+        public async Task<ActionResult<string>> SignOutAsync(string refreshToken)
         {
             try
             {
@@ -134,7 +135,7 @@ namespace CarStore.API.Controllers
                 if (token is null)
                     return BadRequest(new { Message = "Token not found" });
 
-                var result = await _authService.SignOut(token);
+                var result = await _authService.SignOut(token, refreshToken);
 
                 return result.Contains("successfully") ? Ok(new { Message = result }) : BadRequest(new { Message = result });
             }
@@ -145,19 +146,25 @@ namespace CarStore.API.Controllers
         }
 
         [HttpPost("RefreshToken")]
-        [Authorize]
-        public async Task<ActionResult<AuthResult>> RefreshTokenAsync([FromBody] string request)
+        public async Task<ActionResult<string>> RefreshTokenAsync(RefreshTokenRequest request)
         {
-            var result = await _authService.RefreshToken(request);
+            if (request is null)
+                return BadRequest(new { Message = "Invalid request" });
 
-            return !result.IsAuthenticated ? BadRequest(new { Message = result.Message }) : Ok(result);
+            var result = await _authService.RefreshToken(request.refreshToken);
+
+            return !result.IsAuthenticated ? StatusCode(403, new { Message = "Invalid Credentials" }) :
+                Ok(new { Token = result.Token });
         }
 
         [HttpPost("RevokeToken")]
-        [Authorize]
-        public async Task<ActionResult<string>> RevokeTokenAsync([FromBody] string request)
+        [Authorize(Roles = "Administrator")]
+        public async Task<ActionResult<string>> RevokeTokenAsync(RefreshTokenRequest request)
         {
-            var result = await _authService.RevokeToken(request);
+            if (request is null)
+                return BadRequest(new { Message = "Invalid request" });
+
+            var result = await _authService.RevokeToken(request.refreshToken);
 
             return !result ? BadRequest(new { Message = "InValid Token!" }) : Ok(new { Message = "Token Revoked Successfully!" });
 

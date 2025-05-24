@@ -9,7 +9,9 @@ namespace CarStore.Applcation.Profiles
         public CarProfile()
         {
             CreateMap<CarModel, CarDto>()
-                .ForMember(dest => dest.CarBrand, opt => opt.Ignore());
+                .ForMember(dest => dest.CarBrand, opt => opt.Ignore())
+                .ForMember(dest => dest.ImagesUrls, opt => opt.Ignore())
+                .ForMember(dest => dest.IsLiked, opt => opt.Ignore());
 
             CreateMap<CarBrand, BrandDto>();
 
@@ -18,8 +20,14 @@ namespace CarStore.Applcation.Profiles
                 .ForMember(dest => dest.Rates, opt => opt.Ignore())
                 .ForMember(dest => dest.CarFeatures, opt => opt.Ignore())
                 .ForMember(dest => dest.Favorites, opt => opt.Ignore())
-                .ForMember(dest => dest.ModelGalleries, opt => opt.Ignore())
-                ;
+                .ForMember(dest => dest.ModelGalleries, opt => opt.Ignore());
+
+            CreateMap<UpdateCarDto, CarModel>()
+                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+                .ForMember(dest => dest.Rates, opt => opt.Ignore())
+                .ForMember(dest => dest.CarFeatures, opt => opt.Ignore())
+                .ForMember(dest => dest.Favorites, opt => opt.Ignore())
+                .ForMember(dest => dest.ModelGalleries, opt => opt.Ignore());
         }
     }
 }

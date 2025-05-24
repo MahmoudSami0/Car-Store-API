@@ -8,16 +8,18 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.69.0" />
-    <PackageReference Include="MailKit" Version="4.12.0" />
-    <PackageReference Include="microsoft.entityframeworkcore.sqlserver" Version="9.0.4" />
-    <PackageReference Include="microsoft.entityframeworkcore.tools" Version="9.0.4">
+    <PackageReference Include="MailKit" Version="4.12.1" />
+    <PackageReference Include="microsoft.entityframeworkcore.sqlserver" Version="9.0.5" />
+    <PackageReference Include="microsoft.entityframeworkcore.tools" Version="9.0.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.5" />
     <PackageReference Include="MimeKit" Version="4.12.0" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.4" />
   </ItemGroup>
 
   <ItemGroup>
