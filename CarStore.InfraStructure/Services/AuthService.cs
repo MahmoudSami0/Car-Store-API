@@ -276,6 +276,7 @@ public class AuthService : IAuthService
         var newUser = _mapper.Map<User>(user);
         newUser.UserName = user.Email.Split('@')[0];
         newUser.AuthProvider = "Email";
+        newUser.PasswordHash = user.HashPassword;
 
         await _unitOfWork.Users.AddAsync(newUser);
         await _unitOfWork.Users.AddToRoleAsync(newUser.UserId, Roles.User.GetDescription());
