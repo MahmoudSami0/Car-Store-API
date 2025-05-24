@@ -94,20 +94,28 @@ public class AuthService : IAuthService
             };
 
 
-        var newUser = _mapper.Map<PenddingUser>(request);
-
-        //newUser.AuthProvider = "Email";
-        newUser.IsVerified = false;
-        newUser.EmailVerificationToken = GenerateEmailConfirmationToken(request.email);
-        newUser.EmailVerificationTokenExpires = DateTime.UtcNow.AddHours(1);
-
+        var newUser = new PenddingUser
+        {
+            Email = request.email,
+            Phone = request.Phone,
+            Name = request.FullName,
+            HashPassword = PasswordHelper.HashPassword(request.password),
+            EmailVerificationToken = GenerateEmailConfirmationToken(request.email),
+            EmailVerificationTokenExpires = DateTime.UtcNow.AddHours(1),
+            IsVerified = false
+        };
 
         await _unitOfWork.PenddingUsers.AddAsync(newUser);
 
-        //await _mailService.SendEmailConfirmationAsync(newUser.Email, newUser.EmailVerificationToken);
+        await _mailService.SendEmailConfirmationAsync(newUser.Email, newUser.EmailVerificationToken);
 
-        authResult = _mapper.Map<AuthResult>(newUser);
-
+        authResult.AuthProvider = "Email";
+        authResult.Email = newUser.Email;
+        authResult.Name = newUser.Name;
+        authResult.Phone = newUser.Phone;
+        authResult.EmailVerificationToken = newUser.EmailVerificationToken;
+        authResult.EmailVerificationTokenExpires = newUser.EmailVerificationTokenExpires;
+        authResult.IsAuthenticated = newUser.IsVerified;
 
         return authResult;
     }
