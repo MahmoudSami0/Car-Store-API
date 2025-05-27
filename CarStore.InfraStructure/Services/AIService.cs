@@ -1,4 +1,6 @@
 ﻿using CarStore.Applcation.Services;
+using CarStore.InfraStructure.AI;
+using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -8,11 +10,11 @@ namespace CarStore.InfraStructure.Services
     public class AIService : IAIService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiKey = "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";
-        private const string OpenRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
-        public AIService(HttpClient httpClient)
+        private readonly AISettings _aISettings;
+        public AIService(HttpClient httpClient, IOptions<AISettings> aISettings)
         {
             _httpClient = httpClient;
+            _aISettings = aISettings.Value;
         }
 
         public async Task<string> GetAIResponse(string prompt)
@@ -21,7 +23,7 @@ namespace CarStore.InfraStructure.Services
             {
                 var requestBody = new
                 {
-                    model = "qwen/qwen3-235b-a22b", // أو موديل تاني متاح عندك
+                    model = _aISettings.Model, // أو موديل تاني متاح عندك
                     messages = new[]
                     {
                 new { role = "user", content = prompt }
@@ -30,8 +32,8 @@ namespace CarStore.InfraStructure.Services
 
                 var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
 
-                var request = new HttpRequestMessage(HttpMethod.Post, OpenRouterUrl);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                var request = new HttpRequestMessage(HttpMethod.Post, _aISettings.OpenRouterUrl);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _aISettings.ApiKey);
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 request.Content = jsonContent;

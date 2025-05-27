@@ -10,6 +10,7 @@ using CarStore.InfraStructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 using CarStore.Application.Services;
 using CarStore.Applcation.Services;
+using CarStore.InfraStructure.AI;
 
 namespace CarStore.InfraStructure;
 
@@ -22,6 +23,7 @@ public static class DependencyInjection
 
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
         services.Configure<MailSettings>(configuration.GetSection(MailSettings.SectionName));
+        services.Configure<AISettings>(configuration.GetSection(AISettings.SectionName));
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
