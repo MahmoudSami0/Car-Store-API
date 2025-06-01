@@ -94,7 +94,17 @@ Add JWT settings:
 }
 ```
 
-### 7. Apply Migrations
+### 7. Configure AI Settings
+
+```json
+"AISettings": {
+    "ApiKey": "Your Api Key",
+    "OpenRouterUrl": "AI Api URL",
+    "Model": "Your AI Model"
+  }
+```
+
+### 8. Apply Migrations
 
 From the CLI:
 
@@ -109,7 +119,7 @@ Or from **Package Manager Console** (ensure `CarStore.Infrastructure` is the sta
 Update-Database
 ```
 
-### 8. Run the Application
+### 9. Run the Application
 
 ```bash
 dotnet run --project CarStore.API
